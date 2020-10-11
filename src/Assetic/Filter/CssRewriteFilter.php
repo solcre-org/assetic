@@ -36,25 +36,25 @@ class CssRewriteFilter extends BaseCssFilter
 
         // learn how to get from the target back to the source
         if (false !== strpos($sourceBase, '://')) {
-            list($scheme, $url) = explode('://', $sourceBase.'/'.$sourcePath, 2);
-            list($host, $path) = explode('/', $url, 2);
+            list($scheme, $url) = explode('://', $sourceBase . \DIRECTORY_SEPARATOR . $sourcePath, 2);
+            list($host, $path) = explode(\DIRECTORY_SEPARATOR, $url, 2);
 
-            $host = $scheme.'://'.$host.'/';
-            $path = false === strpos($path, '/') ? '' : dirname($path);
-            $path .= '/';
+            $host = $scheme . '://' . $host . \DIRECTORY_SEPARATOR;
+            $path = false === strpos($path, \DIRECTORY_SEPARATOR) ? '' : dirname($path);
+            $path .= \DIRECTORY_SEPARATOR;
         } else {
             // assume source and target are on the same host
             $host = '';
 
             // pop entries off the target until it fits in the source
             if ('.' == dirname($sourcePath)) {
-                $path = str_repeat('../', substr_count($targetPath, '/'));
+                $path = str_repeat('../', substr_count($targetPath, \DIRECTORY_SEPARATOR));
             } elseif ('.' == $targetDir = dirname($targetPath)) {
-                $path = dirname($sourcePath).'/';
+                $path = dirname($sourcePath) . \DIRECTORY_SEPARATOR;
             } else {
                 $path = '';
                 while (0 !== strpos($sourcePath, $targetDir)) {
-                    if (false !== $pos = strrpos($targetDir, '/')) {
+                    if (false !== $pos = strrpos($targetDir, \DIRECTORY_SEPARATOR)) {
                         $targetDir = substr($targetDir, 0, $pos);
                         $path .= '../';
                     } else {
@@ -63,7 +63,7 @@ class CssRewriteFilter extends BaseCssFilter
                         break;
                     }
                 }
-                $path .= ltrim(substr(dirname($sourcePath).'/', strlen($targetDir)), '/');
+                $path .= ltrim(substr(dirname($sourcePath) . \DIRECTORY_SEPARATOR, strlen($targetDir)), \DIRECTORY_SEPARATOR);
             }
         }
 
@@ -73,20 +73,20 @@ class CssRewriteFilter extends BaseCssFilter
                 return $matches[0];
             }
 
-            if (isset($matches['url'][0]) && '/' == $matches['url'][0]) {
+            if (isset($matches['url'][0]) && \DIRECTORY_SEPARATOR == $matches['url'][0]) {
                 // root relative
-                return str_replace($matches['url'], $host.$matches['url'], $matches[0]);
+                return str_replace($matches['url'], $host . $matches['url'], $matches[0]);
             }
 
             // document relative
             $url = $matches['url'];
-            while (0 === strpos($url, '../') && 2 <= substr_count($path, '/')) {
-                $path = substr($path, 0, strrpos(rtrim($path, '/'), '/') + 1);
+            while (0 === strpos($url, '../') && 2 <= substr_count($path, \DIRECTORY_SEPARATOR)) {
+                $path = substr($path, 0, strrpos(rtrim($path, \DIRECTORY_SEPARATOR), \DIRECTORY_SEPARATOR) + 1);
                 $url = substr($url, 3);
             }
 
             $parts = array();
-            foreach (explode('/', $host.$path.$url) as $part) {
+            foreach (explode(\DIRECTORY_SEPARATOR, $host . $path . $url) as $part) {
                 if ('..' === $part && count($parts) && '..' !== end($parts)) {
                     array_pop($parts);
                 } else {
@@ -94,7 +94,7 @@ class CssRewriteFilter extends BaseCssFilter
                 }
             }
 
-            return str_replace($matches['url'], implode('/', $parts), $matches[0]);
+            return str_replace($matches['url'], implode(\DIRECTORY_SEPARATOR, $parts), $matches[0]);
         });
 
         $asset->setContent($content);
